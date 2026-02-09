@@ -1,0 +1,77 @@
+local Base = require("ui.base")
+local Theme = require("ui.theme")
+local Manager = require("ui.manager")
+local flux = require("ui.flux")
+
+local Arc = setmetatable({}, { __index = Base })
+Arc.__index = Arc
+
+function Arc.new(props)
+	-- Arcs are often centered, but Base usually uses top-left.
+	-- We'll use x, y as the CENTER of the arc.
+	local self = setmetatable(Base.new("arc"), Arc)
+
+	self.x = props.x or 100
+	self.y = props.y or 100
+	self.r = props.r or 50
+	self.t = props.t or 0.8 -- animation duration
+
+	self.style = props.style or "open" -- "pie", "open", "closed"
+	self.variant = props.variant or "primary"
+
+	self.progress = props.progress or 0 -- 0.0 to 1.0
+	self.startAngle = props.startAngle or -math.pi / 2 -- Top center
+	self.maxAngle = props.maxAngle or (math.pi * 2)
+
+	self.lineWidth = props.lineWidth or 8
+	self.showTrack = props.showTrack ~= false
+
+	self.fillColor = Theme.getColor(self.variant)
+	self.trackColor = props.trackColor or { 0.2, 0.2, 0.2, 0.5 }
+
+	Manager.add(self)
+	return self
+end
+
+function Arc:draw()
+	if not self.visible then
+		return
+	end
+
+	-- 1. Draw Background Track (the "empty" circle)
+	if self.showTrack then
+		love.graphics.setLineWidth(self.lineWidth)
+		love.graphics.setColor(self.trackColor)
+		love.graphics.arc("line", "closed", self.x, self.y, self.r, 0, math.pi * 2)
+	end
+
+	-- 2. Draw Progress Arc
+	love.graphics.setLineWidth(self.lineWidth)
+	love.graphics.setColor(self.fillColor)
+
+	-- "line" mode looks best for rings; "fill" with "pie" looks like a loading pizza
+	local mode = (self.style == "pie") and "fill" or "line"
+
+	love.graphics.arc(
+		mode,
+		self.style,
+		self.x,
+		self.y,
+		self.r,
+		self.startAngle,
+		self.startAngle + (self.maxAngle * self.progress),
+		32 -- segments for smoothness
+	)
+
+	love.graphics.setColor(1, 1, 1, 1)
+end
+
+function Arc:update(dt)
+	Base.update(self, dt)
+end
+
+function Arc:setProgress(val)
+	self.progress = val
+end
+
+return Arc
