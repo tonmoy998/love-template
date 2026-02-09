@@ -5,9 +5,11 @@ local Button = require("ui.components.button")
 local Alert = require("ui.components.alert")
 local screen = require("lib.sunscreen")
 local flux = require("ui.flux")
+local App = require("main.main")
 
 -- Virtual width and height (your design resolution)
-local vw, vh = 720, 1450
+-- local vw, vh = 720, 1450
+local vw, vh = 720, 1280
 function love.load()
 	-- Initialize Sunscreen for responsive screen
 	screen:init({
@@ -15,12 +17,14 @@ function love.load()
 		gameHeight = vh,
 		mode = "fit",
 	})
+	App.load()
 end
 
 function love.update(dt)
 	flux.update(dt)
 	local mx, my = love.mouse.getPosition()
 	local vmx, vmy = screen:screenToGame(mx, my)
+	App.update(dt)
 	UI.update(dt)
 end
 
@@ -33,6 +37,7 @@ function love.draw()
 	-- love.graphics.rectangle("fill", 0, 0, vw, vh)
 
 	-- Draw UI
+	App.draw()
 	UI.draw()
 end
 
